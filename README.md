@@ -4,6 +4,11 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
+### `yarn json-server db.json -p 3333`
+
+Start JSON server to emulate an API on [http://localhost:3333](http://localhost:3333)
+
+
 ### `yarn start`
 
 Runs the app in the development mode.<br />
