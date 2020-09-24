@@ -73,7 +73,7 @@ const Home: React.FC = () => {
       <Wrapper>
         <Content>
           <section>
-            <h1>Build for developers</h1>
+            <h1>Built for developers</h1>
             <h3>
               GitHub is a development platform inspired by the way you work.
               From open source to business, you can host and review code, manage
