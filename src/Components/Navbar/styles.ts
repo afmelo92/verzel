@@ -10,7 +10,7 @@ export const Content = styled.div`
   justify-content: space-between;
   margin: 0 auto;
   width: 100%;
-  max-width: 1040px;
+  max-width: 1280px;
   padding-top: 10px;
 
   @media (max-width: 1040px) {

@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { shade } from 'polished';
 
 export const Container = styled.div``;
 
@@ -10,14 +11,12 @@ export const Wrapper = styled.div`
 
 export const Content = styled.div`
   display: flex;
-  border: 1px solid red;
   width: 100%;
   height: 60vh;
   margin: 0 auto;
   max-width: 1040px;
 
-  div {
-    border: 1px solid green;
+  section {
     width: 50%;
     display: flex;
     flex-direction: column;
@@ -40,39 +39,28 @@ export const Content = styled.div`
   form {
     display: flex;
     flex-direction: column;
-    margin: 0px auto 70px auto;
+    margin: 10px auto 20px auto;
     justify-content: center;
     background: #fff;
     border-radius: 5px;
     padding: 0 20px;
-
-    input {
-      width: 400px;
-      margin-bottom: 30px;
-      padding: 15px;
-
-      :nth-child(3) {
-        margin-bottom: 0;
-      }
-    }
-
-    button {
-      background: #57a847;
-      padding: 25px;
-      color: #fff;
-      border-radius: 10px;
-    }
+    max-height: 500px;
 
     small {
       width: 400px;
       font-size: 12px;
-      margin: 20px 0;
+      margin: 0 0 20px 0;
     }
 
     button + small {
       color: #666;
       margin: 30px 0 0 0;
-      border: 1px solid red;
+    }
+
+    .label {
+      font-weight: bold;
+      font-size: 15px;
+      margin: 0;
     }
   }
 `;
