@@ -8,7 +8,7 @@ import * as Yup from 'yup';
 import moment from 'moment';
 import { validate } from 'gerador-validador-cpf';
 import { FaSpinner } from 'react-icons/fa';
-import { Redirect, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import api from '../../services/api/api';
 
@@ -16,7 +16,7 @@ import Navbar from '../../Components/Navbar';
 import Input from '../../Components/Input';
 import Button from '../../Components/Button';
 import getValidationErrors from '../../utils/getValidationErrors';
-import { cpfMask } from '../../utils/cpfMask';
+import { cepMask, cpfMask } from '../../utils/cpfMask';
 
 import { Container, Content, Wrapper } from './styles';
 
@@ -37,43 +37,25 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   async function handleCEP(cepDigit: string) {
-    if (formRef.current?.getFieldValue('cep').replace(/\D/g, '').length < 8) {
-      formRef.current?.setFieldError('cep', 'Mínimo de 8 dígitos');
-    }
+    if (cepDigit.length === 9) {
+      const cepResult = await axios.get(
+        `https://cors-anywhere.herokuapp.com/http://viacep.com.br/ws/${cepDigit}/json`,
+      );
 
-    if (formRef.current?.getFieldValue('cep').replace(/\D/g, '').length === 8) {
-      formRef.current?.setFieldValue('cep', cepDigit);
-      const cepNumber = formRef.current?.getFieldValue('cep');
-
-      if (cepNumber) {
-        const cepResult = await axios.get(
-          `https://cors-anywhere.herokuapp.com/http://viacep.com.br/ws/${cepNumber}/json`,
-        );
-
-        if (!cepResult.data || cepResult.data.erro === true) {
-          formRef.current?.setFieldError('cep', 'CEP inválido');
-          return;
-        }
-        formRef.current?.setFieldError('cep', 'erase');
-
-        const { logradouro, bairro, uf, localidade } = cepResult.data;
-
-        formRef.current?.setFieldValue(
-          'address',
-          `${logradouro} - ${bairro} - ${localidade} - ${uf}`,
-        );
-
+      if (!cepResult.data || cepResult.data.erro === true) {
+        formRef.current?.setFieldError('cep', 'CEP inválido');
         return;
       }
 
-      return;
-    }
+      formRef.current?.setFieldError('cep', 'erase');
 
-    if (cepDigit.length > 8) {
-      formRef.current?.setFieldError('cep', 'Máximo de 8 dígitos');
-      formRef.current?.setFieldValue('cep', cepDigit);
+      const { logradouro, bairro, uf, localidade } = cepResult.data;
 
-      return;
+      formRef.current?.setFieldValue(
+        'address',
+        `${logradouro} - ${bairro} - ${localidade} - ${uf}`,
+      );
+      return formRef.current?.setFieldValue('cep', cepDigit);
     }
 
     formRef.current?.setFieldValue('cep', cepDigit);
@@ -224,8 +206,8 @@ const Home: React.FC = () => {
               type="text"
               name="cep"
               placeholder="12345-678"
-              maxLength={8}
-              onChange={e => handleCEP(e.target.value.replace(/\D/g, ''))}
+              maxLength={9}
+              onChange={e => handleCEP(cepMask(e.target.value))}
             />
 
             <small className="label">Endereço</small>
