@@ -1,71 +1,191 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable consistent-return */
 /* eslint-disable no-unused-expressions */
 import React, { useCallback, useRef, useState } from 'react';
 import { Form } from '@unform/web';
-import * as Yup from 'yup';
-import { FaSpinner } from 'react-icons/fa';
 import { FormHandles } from '@unform/core';
+import * as Yup from 'yup';
+import moment from 'moment';
+import { validate } from 'gerador-validador-cpf';
+import { FaSpinner } from 'react-icons/fa';
+import { Redirect, useHistory } from 'react-router-dom';
+import axios from 'axios';
+import api from '../../services/api/api';
+
 import Navbar from '../../Components/Navbar';
+import Input from '../../Components/Input';
+import Button from '../../Components/Button';
+import getValidationErrors from '../../utils/getValidationErrors';
+import { cpfMask } from '../../utils/cpfMask';
 
 import { Container, Content, Wrapper } from './styles';
-import Input from '../../Components/Input';
-import api from '../../services/api/api';
-import getValidationErrors from '../../utils/getValidationErrors';
-import Button from '../../Components/Button';
 
 interface FormData {
-  username: string;
+  name: string;
   email: string;
   password: string;
+  birth: string;
+  cpf?: string;
+  cep?: string;
+  address?: string;
+  addressNumber?: number;
 }
 
 const Home: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const [loading, setLoading] = useState(false);
+  const history = useHistory();
 
-  const handleSubmit = useCallback(async (data: FormData) => {
-    try {
-      setLoading(true);
-
-      formRef.current?.setErrors({});
-
-      const schema = Yup.object().shape({
-        username: Yup.string()
-          .required('Usuário obrigatório')
-          .lowercase()
-          .min(2, 'Mínimo de 2 caracteres')
-          .trim(),
-        email: Yup.string()
-          .required('Mensagem obrigatória')
-          .email('Apenas e-mail em formato válido')
-          .lowercase('Apenas letras minúsculas'),
-        password: Yup.string()
-          .required('Senha obrigatória')
-          .min(6, 'Mínimo de 6 caracteres'),
-      });
-
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-
-      const { username, email, password } = data;
-
-      await api.post('users', {
-        username: String(username),
-        email: String(email),
-        password: String(password),
-      });
-
-      setLoading(false);
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(err);
-
-        formRef.current?.setErrors(errors);
-      }
-    } finally {
-      setLoading(false);
+  async function handleCEP(cepDigit: string) {
+    if (formRef.current?.getFieldValue('cep').replace(/\D/g, '').length < 8) {
+      formRef.current?.setFieldError('cep', 'Mínimo de 8 dígitos');
     }
-  }, []);
+
+    if (formRef.current?.getFieldValue('cep').replace(/\D/g, '').length === 8) {
+      formRef.current?.setFieldValue('cep', cepDigit);
+      const cepNumber = formRef.current?.getFieldValue('cep');
+
+      if (cepNumber) {
+        const cepResult = await axios.get(
+          `https://cors-anywhere.herokuapp.com/http://viacep.com.br/ws/${cepNumber}/json`,
+        );
+
+        if (!cepResult.data || cepResult.data.erro === true) {
+          formRef.current?.setFieldError('cep', 'CEP inválido');
+          return;
+        }
+        formRef.current?.setFieldError('cep', 'erase');
+
+        const { logradouro, bairro, uf, localidade } = cepResult.data;
+
+        formRef.current?.setFieldValue(
+          'address',
+          `${logradouro} - ${bairro} - ${localidade} - ${uf}`,
+        );
+
+        return;
+      }
+
+      return;
+    }
+
+    if (cepDigit.length > 8) {
+      formRef.current?.setFieldError('cep', 'Máximo de 8 dígitos');
+      formRef.current?.setFieldValue('cep', cepDigit);
+
+      return;
+    }
+
+    formRef.current?.setFieldValue('cep', cepDigit);
+  }
+
+  async function handleCPF(cpfDigit: string) {
+    if (validate(cpfDigit)) {
+      formRef.current?.setFieldError('cpf', 'erase');
+      return formRef.current?.setFieldValue('cpf', cpfDigit);
+    }
+    formRef.current?.setFieldValue('cpf', cpfDigit);
+
+    return formRef.current?.setFieldError('cpf', 'CPF inválido');
+  }
+
+  const handleSubmit = useCallback(
+    async (data: FormData) => {
+      try {
+        setLoading(true);
+
+        formRef.current?.setErrors({});
+
+        const schema = Yup.object().shape({
+          name: Yup.string()
+            .required('Usuário obrigatório')
+            .lowercase()
+            .min(2, 'Mínimo de 2 caracteres')
+            .trim(),
+          email: Yup.string()
+            .required('Mensagem obrigatória')
+            .email('Apenas e-mail em formato válido')
+            .lowercase('Apenas letras minúsculas'),
+          birth: Yup.string()
+            .test(
+              'birth-date',
+              'Apenas maiores de 12 anos podem se cadastrar',
+              value => {
+                return moment().diff(moment(value), 'years') >= 12;
+              },
+            )
+            .required('Data de nascimento obrigatória'),
+          cpf: Yup.string().test('cpf', 'CPF inválido', value => {
+            if (value && validate(value)) {
+              return true;
+            }
+            return false;
+          }),
+          cep: Yup.string()
+            .min(8, 'Mínimo de 8 digitos')
+            .test('cep', 'CEP inválido. Insira apenas números', async value => {
+              if (value) {
+                if (value.length === 8) {
+                  const cepResult = await axios.get(
+                    `http://viacep.com.br/ws/${value}/json`,
+                  );
+                  if (cepResult.data.erro === true) {
+                    return false;
+                  }
+                }
+              }
+              return true;
+            }),
+          addressNumber: Yup.number().moreThan(
+            0,
+            'Número precisa ser maior que zero',
+          ),
+          password: Yup.string()
+            .required('Senha obrigatória')
+            .min(6, 'Mínimo de 6 caracteres'),
+        });
+
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+
+        const {
+          name,
+          email,
+          birth,
+          cpf,
+          cep,
+          address,
+          addressNumber,
+          password,
+        } = data;
+
+        await api.post('users', {
+          name: String(name),
+          email: String(email),
+          birth: String(birth),
+          cpf: String(cpf).replace(/\D/g, ''),
+          cep: String(cep).replace(/\D/g, ''),
+          address: String(address),
+          addressNumber: String(addressNumber),
+          password: String(password),
+        });
+
+        setLoading(false);
+
+        history.push('dashboard');
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
+
+          formRef.current?.setErrors(errors);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [history],
+  );
 
   return (
     <Container>
@@ -81,14 +201,46 @@ const Home: React.FC = () => {
             </h3>
           </section>
           <Form ref={formRef} onSubmit={handleSubmit}>
-            <small className="label">Username</small>
-            <Input type="text" name="username" />
+            <small className="label">Nome</small>
+            <Input type="text" name="name" placeholder="Seu nome" />
 
             <small className="label">Email</small>
-            <Input type="text" name="email" />
+            <Input type="email" name="email" placeholder="Seu e-mail" />
 
-            <small className="label">Password</small>
-            <Input type="password" name="password" />
+            <small className="label">Data de nascimento</small>
+            <Input type="date" name="birth" placeholder="Data de nascimento" />
+
+            <small className="label">CPF</small>
+            <Input
+              type="text"
+              name="cpf"
+              placeholder="999.999.999-99"
+              maxLength={14}
+              onChange={e => handleCPF(cpfMask(e.target.value))}
+            />
+
+            <small className="label">CEP</small>
+            <Input
+              type="text"
+              name="cep"
+              placeholder="12345-678"
+              maxLength={8}
+              onChange={e => handleCEP(e.target.value.replace(/\D/g, ''))}
+            />
+
+            <small className="label">Endereço</small>
+            <Input type="text" name="address" placeholder="Endereço" />
+
+            <small className="label">Número</small>
+            <Input
+              type="number"
+              min="1"
+              name="addressNumber"
+              placeholder="Numero"
+            />
+
+            <small className="label">Senha</small>
+            <Input type="password" name="password" placeholder="Senha" />
 
             <small>
               Make sure it is at least 15 characters OR at least 8 characters
@@ -97,12 +249,6 @@ const Home: React.FC = () => {
             <Button loading={loading} icon={FaSpinner} type="submit">
               Sign up for GitHub
             </Button>
-
-            <small>
-              By clicking “Sign up for GitHub”, you agree to our Terms of
-              Service and Privacy Statement. We’ll occasionally send you account
-              related emails.
-            </small>
           </Form>
         </Content>
       </Wrapper>

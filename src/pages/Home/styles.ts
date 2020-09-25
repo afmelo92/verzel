@@ -1,17 +1,18 @@
 import styled from 'styled-components';
 
-export const Container = styled.div``;
+export const Container = styled.div`
+  overflow: hidden;
+`;
 
 export const Wrapper = styled.div`
   background: #2b3137;
   width: 100vw;
-  height: 100%;
 `;
 
 export const Content = styled.div`
   display: flex;
   width: 100%;
-  height: 60vh;
+  height: 100%;
   margin: 0 auto;
   max-width: 1040px;
 
@@ -39,11 +40,9 @@ export const Content = styled.div`
     display: flex;
     flex-direction: column;
     margin: 10px auto 20px auto;
-    justify-content: center;
     background: #fff;
     border-radius: 5px;
-    padding: 0 20px;
-    max-height: 500px;
+    padding: 0 20px 20px;
 
     small {
       width: 400px;
@@ -60,6 +59,10 @@ export const Content = styled.div`
       font-weight: bold;
       font-size: 15px;
       margin: 0;
+
+      &:first-child {
+        margin-top: 15px;
+      }
     }
   }
 
@@ -96,7 +99,7 @@ export const Content = styled.div`
       background: #fff;
       border-radius: 5px;
       padding: 20px 20px;
-      max-height: 500px;
+      height: 800px;
 
       small {
         width: 400px;
