@@ -4,9 +4,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
-### `yarn json-server db.json -p 3333`
+### `yarn json-server db.json --delay 2000 -p 3333`
 
-Start JSON server to emulate an API on [http://localhost:3333](http://localhost:3333)
+Start JSON server to emulate an API on [http://localhost:3333](http://localhost:3333) with 2 seconds delay
 
 
 ### `yarn start`
