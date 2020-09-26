@@ -30,6 +30,8 @@ export const LeftNav = styled.div`
     align-items: center;
     text-decoration: none;
     color: #e1e1e1;
+    font-weight: bold;
+    margin-left: 20px;
 
     &:hover {
       opacity: 0.8;
@@ -37,23 +39,29 @@ export const LeftNav = styled.div`
     }
   }
 
-  a + a {
-    margin-left: 10px;
-  }
-
   input {
     margin-left: 10px;
     background: rgba(255, 255, 255, 0.2);
     border: none;
-    padding: 8px;
+    padding: 7px;
     border-radius: 4px;
+    width: 250px;
+    font-size: 12px;
+    color: #fff;
 
     ::placeholder {
       color: #fff;
+      font-size: 12px;
     }
 
     &:focus {
-      background: #fff;
+      background: rgba(255, 255, 255, 0.8);
+      color: #2b3137;
+
+      ::placeholder {
+        color: #2b3137;
+        font-size: 12px;
+      }
     }
   }
 
@@ -103,6 +111,12 @@ export const RightNav = styled.div`
     margin-right: 20px;
   }
 
+  h3 {
+    color: #fff;
+    margin-right: 20px;
+    font-size: 16px;
+  }
+
   button {
     background: transparent;
     border: none;
@@ -118,6 +132,10 @@ export const RightNav = styled.div`
     }
 
     .signin {
+      display: none;
+    }
+
+    h3 {
       display: none;
     }
 

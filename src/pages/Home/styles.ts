@@ -12,7 +12,6 @@ export const Wrapper = styled.div`
 export const Content = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
   margin: 0 auto;
   max-width: 1040px;
 
@@ -69,7 +68,6 @@ export const Content = styled.div`
   @media (max-width: 1040px) {
     display: flex;
     flex-direction: column;
-    height: 80vh;
     align-items: center;
 
     section {
@@ -98,8 +96,8 @@ export const Content = styled.div`
       justify-content: center;
       background: #fff;
       border-radius: 5px;
-      padding: 20px 20px;
-      height: 800px;
+      padding: 0 20px 20px 20px;
+      height: 900px;
 
       small {
         width: 400px;

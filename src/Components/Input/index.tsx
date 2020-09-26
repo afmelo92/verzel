@@ -44,7 +44,7 @@ const Input: React.FC<InputProps> = ({ name, containerStyle, ...rest }) => {
       path: 'value',
     });
 
-    if (error === 'erase') {
+    if (error === 'erase' || error === 'empty-date') {
       clearError();
     }
   }, [fieldName, registerField, clearError, error]);

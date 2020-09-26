@@ -85,7 +85,7 @@ const Home: React.FC = () => {
             .min(2, 'Mínimo de 2 caracteres')
             .trim(),
           email: Yup.string()
-            .required('Mensagem obrigatória')
+            .required('E-mail obrigatório')
             .email('Apenas e-mail em formato válido')
             .lowercase('Apenas letras minúsculas'),
           birth: Yup.string()
