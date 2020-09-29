@@ -7,6 +7,7 @@ import Home from '../pages/Home';
 import Dashboard from '../pages/Dashboard';
 import EditTask from '../pages/EditTask';
 import NewTask from '../pages/NewTask';
+import PrivateRoute from './PrivateRoute';
 
 const Routes: React.FC = () => {
   return (
@@ -15,11 +16,9 @@ const Routes: React.FC = () => {
       <Route path="/signin" exact component={SignIn} />
       <Route path="/signup" exact component={SignUp} />
 
-      <Route path="/dashboard" exact component={Dashboard} isPrivate />
-      <Route path="/new" exact component={NewTask} isPrivate />
-      <Route path="/edit/:id" exact isPrivate>
-        <EditTask />
-      </Route>
+      <PrivateRoute path="/dashboard" exact component={Dashboard} />
+      <PrivateRoute path="/new" exact component={NewTask} />
+      <PrivateRoute path="/edit/:id" exact component={EditTask} />
     </Switch>
   );
 };

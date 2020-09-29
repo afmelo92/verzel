@@ -12,7 +12,9 @@ const Navbar: React.FC = () => {
     <Container>
       <Content>
         <LeftNav>
-          <img src={logo} alt="logo" />
+          <Link to="/">
+            <img src={logo} alt="logo" />
+          </Link>
           <Link to="/">
             Why GitHub
             <BsChevronDown style={{ marginLeft: 3 }} />

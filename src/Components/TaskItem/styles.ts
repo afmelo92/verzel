@@ -1,8 +1,17 @@
 import { lighten } from 'polished';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
-export const Container = styled.div`
+interface ContainerProps {
+  isDone: boolean;
+}
+
+export const Container = styled.div<ContainerProps>`
   background: #f3f4f6;
+  ${props =>
+    props.isDone &&
+    css`
+      display: #00cc00;
+    `}
   margin-top: 10px;
   padding: 20px;
   border-radius: 10px;
@@ -34,7 +43,7 @@ export const Content = styled.div`
 
     .start-date {
       width: 100%;
-      max-width: 180px;
+      max-width: 220px;
     }
 
     .end-date {

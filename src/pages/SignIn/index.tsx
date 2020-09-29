@@ -7,6 +7,7 @@ import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 import { FaSpinner } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import api from '../../services/api/api';
 
 import Navbar from '../../Components/Navbar';
@@ -15,6 +16,7 @@ import Button from '../../Components/Button';
 import getValidationErrors from '../../utils/getValidationErrors';
 
 import { Container, Content, Wrapper } from './styles';
+import { loginUser } from '../../store/modules/user/actions';
 
 interface FormData {
   email: string;
@@ -25,6 +27,7 @@ const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
+  const dispatch = useDispatch();
 
   const handleSubmit = useCallback(
     async (data: FormData) => {
@@ -48,14 +51,21 @@ const SignIn: React.FC = () => {
 
         const { email, password } = data;
 
-        await api.post('users', {
-          email: String(email),
-          password: String(password),
-        });
+        // MOCK API CALL
+        const response = await api.get(`users?email=${email}`);
+
+        if (response.data[0].password !== password) {
+          throw new Error('Validation fails');
+        }
+
+        const tasks = await api.get(`/tasks`);
+
+        // DISPATCH TOKEN HERE
+        dispatch(loginUser(response.data[0], tasks.data));
 
         setLoading(false);
 
-        history.push('dashboard');
+        history.push('/dashboard');
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -66,7 +76,7 @@ const SignIn: React.FC = () => {
         setLoading(false);
       }
     },
-    [history],
+    [dispatch, history],
   );
 
   return (

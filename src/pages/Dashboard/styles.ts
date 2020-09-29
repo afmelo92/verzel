@@ -21,7 +21,7 @@ export const Content = styled.div`
   display: flex;
   flex-direction: column;
 
-  button.new-task {
+  a.new-task {
     padding: 20px;
     flex: 1;
     background: #2b3137;
@@ -63,7 +63,7 @@ export const TaskItemHeader = styled.div`
 
     .start-date {
       width: 100%;
-      max-width: 180px;
+      max-width: 220px;
     }
 
     .end-date {

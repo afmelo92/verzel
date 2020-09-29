@@ -10,15 +10,18 @@ import { validate } from 'gerador-validador-cpf';
 import { FaSpinner } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
 import api from '../../services/api/api';
 
 import Navbar from '../../Components/Navbar';
 import Input from '../../Components/Input';
 import Button from '../../Components/Button';
 import getValidationErrors from '../../utils/getValidationErrors';
-import { cepMask, cpfMask } from '../../utils/cpfMask';
+import { cepMask, cpfMask } from '../../utils/masks';
 
 import { Container, Content, Wrapper } from './styles';
+import { createUser } from '../../store/modules/users/actions';
+import { loginUser } from '../../store/modules/user/actions';
 
 interface FormData {
   name: string;
@@ -35,6 +38,7 @@ const SignUp: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
+  const dispatch = useDispatch();
 
   async function handleCEP(cepDigit: string) {
     if (cepDigit.length === 9) {
@@ -80,10 +84,10 @@ const SignUp: React.FC = () => {
 
         const schema = Yup.object().shape({
           name: Yup.string()
-            .required('Usuário obrigatório')
             .lowercase()
             .min(2, 'Mínimo de 2 caracteres')
-            .trim(),
+            .trim()
+            .required('Usuário obrigatório'),
           email: Yup.string()
             .required('E-mail obrigatório')
             .email('Apenas e-mail em formato válido')
@@ -97,17 +101,21 @@ const SignUp: React.FC = () => {
               },
             )
             .required('Data de nascimento obrigatória'),
-          cpf: Yup.string().test('cpf', 'CPF inválido', value => {
-            if (value && validate(value)) {
-              return true;
-            }
-            return false;
-          }),
-          cep: Yup.string()
-            .min(8, 'Mínimo de 8 digitos')
-            .test('cep', 'CEP inválido. Insira apenas números', async value => {
-              if (value) {
-                if (value.length === 8) {
+          cpf: Yup.mixed()
+            .test('cpf', 'CPF inválido', value => {
+              if ((value && validate(value)) || value === '') {
+                return true;
+              }
+              return false;
+            })
+            .notRequired()
+            .optional(),
+          cep: Yup.mixed()
+            .test(
+              'CEP API CALL',
+              'CEP inválido. Insira apenas números',
+              async value => {
+                if (value && value.length === 8) {
                   const cepResult = await axios.get(
                     `http://viacep.com.br/ws/${value}/json`,
                   );
@@ -115,13 +123,19 @@ const SignUp: React.FC = () => {
                     return false;
                   }
                 }
+                return true;
+              },
+            )
+            .test('CEP LENGTH', 'Mínimo de 8 dígitos', value => {
+              if (value.length < 8 && value.length > 0) {
+                return false;
               }
               return true;
             }),
-          addressNumber: Yup.number().moreThan(
-            0,
-            'Número precisa ser maior que zero',
-          ),
+          addressNumber: Yup.number()
+            .integer()
+            .moreThan(-1, 'Número precisa ser maior que zero')
+            .notRequired(),
           password: Yup.string()
             .required('Senha obrigatória')
             .min(6, 'Mínimo de 6 caracteres'),
@@ -135,14 +149,14 @@ const SignUp: React.FC = () => {
           name,
           email,
           birth,
-          cpf,
-          cep,
           address,
           addressNumber,
           password,
+          cpf,
+          cep,
         } = data;
 
-        await api.post('users', {
+        const response = await api.post('users', {
           name: String(name),
           email: String(email),
           birth: String(birth),
@@ -153,9 +167,17 @@ const SignUp: React.FC = () => {
           password: String(password),
         });
 
-        setLoading(false);
+        if (!response.data.email) {
+          throw new Error('Validation fails');
+        }
 
-        history.push('dashboard');
+        const tasks = await api.get(`/tasks`);
+
+        dispatch(createUser(response.data));
+
+        dispatch(loginUser(response.data, tasks.data));
+
+        setLoading(false);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -166,7 +188,7 @@ const SignUp: React.FC = () => {
         setLoading(false);
       }
     },
-    [history],
+    [dispatch, history],
   );
 
   return (
@@ -208,9 +230,10 @@ const SignUp: React.FC = () => {
             <small className="label">Número</small>
             <Input
               type="number"
-              min="1"
+              min="0"
               name="addressNumber"
               placeholder="Numero"
+              defaultValue={0}
             />
 
             <small className="label">Senha</small>
